@@ -11,7 +11,7 @@ class TimestampedDocument(db.Document):
 
     def save(self, *args, **kwargs):
         self.updated_at = datetime.now()
-        super().save(*args, **kwargs)
+        return super().save(*args, **kwargs)
 
 
 class ConsumptionData(db.Document):
@@ -26,4 +26,3 @@ class Report(TimestampedDocument):
     report_from = db.DateTimeField()
     report_to = db.DateTimeField()
     consumption = db.ReferenceField(ConsumptionData)
-

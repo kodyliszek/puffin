@@ -10,16 +10,7 @@ from resources.errors import errors
 app = Flask(__name__)
 api = Api(app, errors=errors)
 
-DB_USERNAME = os.environ.get("DB_USERNAME")
-DB_PASSWORD = os.environ.get("DB_PASSWORD")
-DB_HOST = os.environ.get("DB_HOST")
-DB_PORT = os.environ.get("DB_PORT")
-DB_NAME = os.environ.get("DB_NAME")
-DB_URL = f'mongodb://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
-
-app.config['MONGODB_SETTINGS'] = {
-    'host': DB_URL
-}
+app.config.from_envvar('ENV_FILE_LOCATION')
 
 db = initialize_db(app)
 initialize_routes(api)

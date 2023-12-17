@@ -26,8 +26,10 @@ class ReportsApi(Resource):
 class ReportApi(Resource):
     def put(self, id):
         try:
+            report = Report.objects.get(id=id)
             body = request.get_json()
-            consumption = ConsumptionData.objects.get(id=body.get("consumption"))
+            consumption_id = body.get("consumption") or report.consumption.id
+            consumption = ConsumptionData.objects.get(id=consumption_id)
             body["consumption"] = consumption
             Report.objects.get(id=id).update(**body)
             report = Report.objects.get(id=id)
