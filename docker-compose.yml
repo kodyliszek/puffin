@@ -9,10 +9,32 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: password
       MONGO_INITDB_DATABASE: root-db
     ports:
-      - 27017:27017
+      - "27017:27017"
     volumes:
       - mongodb_data_container:/data/db
       - ./docker-entrypoint-initdb.d/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+
+  web:
+    build:
+      dockerfile: Dockerfile
+    environment:
+      ENV_FILE_LOCATION: ./.env
+    ports:
+      - '5000:5000'
+    depends_on:
+      - mongodb
+
+  test:
+    build:
+      dockerfile: Dockerfile
+    command: sleep infinity
+    environment:
+      ENV_FILE_LOCATION: ./.env.test
+    ports:
+      - '5001:5001'
+    depends_on:
+      - mongodb
+
 
 volumes:
   mongodb_data_container:
