@@ -2,6 +2,9 @@ from flask import Response, request
 from flask_restful import Resource
 
 from database.models import Report, ConsumptionData
+from mongoengine.errors import FieldDoesNotExist, NotUniqueError, DoesNotExist, ValidationError, InvalidQueryError
+
+from resources.errors import SchemaValidationError, InternalServerError, ObjectNotExistsError
 
 
 class ReportsApi(Resource):
@@ -10,24 +13,46 @@ class ReportsApi(Resource):
         return Response(reports, mimetype="application/json", status=200)
 
     def post(self):
-        body = request.get_json()
-        report = Report(**body).save()
-        return Response(report.to_json(), mimetype="application/json", status=201)
+        try:
+            body = request.get_json()
+            report = Report(**body).save()
+            return Response(report.to_json(), mimetype="application/json", status=201)
+        except (FieldDoesNotExist, ValidationError):
+            raise SchemaValidationError
+        except Exception as e:
+            raise InternalServerError
 
 
 class ReportApi(Resource):
     def put(self, id):
-        body = request.get_json()
-        consumption = ConsumptionData.objects.get(id=body.get("consumption"))
-        body["consumption"] = consumption
-        Report.objects.get(id=id).update(**body)
-        report = Report.objects.get(id=id)
-        return Response(report.to_json(), mimetype="application/json", status=200)
-
+        try:
+            body = request.get_json()
+            consumption = ConsumptionData.objects.get(id=body.get("consumption"))
+            body["consumption"] = consumption
+            Report.objects.get(id=id).update(**body)
+            report = Report.objects.get(id=id)
+            return Response(report.to_json(), mimetype="application/json", status=200)
+        except InvalidQueryError:
+            raise SchemaValidationError
+        except DoesNotExist:
+            raise ObjectNotExistsError
+        except Exception:
+            raise InternalServerError
+        
     def delete(self, id):
-        report = Report.objects.get(id=id).delete()
-        return Response("", mimetype="application/json", status=204)
-
+        try:
+            Report.objects.get(id=id).delete()
+            return Response("", mimetype="application/json", status=204)
+        except DoesNotExist:
+            raise ObjectNotExistsError
+        except Exception:
+            raise InternalServerError
+    
     def get(self, id):
-        report = Report.objects.get(id=id)
-        return Response(report.to_json(), mimetype="application/json", status=200)
+        try:
+            report = Report.objects.get(id=id)
+            return Response(report.to_json(), mimetype="application/json", status=200)
+        except DoesNotExist:
+            raise ObjectNotExistsError
+        except Exception:
+            raise InternalServerError

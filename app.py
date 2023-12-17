@@ -5,9 +5,10 @@ from flask_restful import Api
 
 from database.db import initialize_db
 from resources.routes import initialize_routes
+from resources.errors import errors
 
 app = Flask(__name__)
-api = Api(app)
+api = Api(app, errors=errors)
 
 DB_USERNAME = os.environ.get("DB_USERNAME")
 DB_PASSWORD = os.environ.get("DB_PASSWORD")
